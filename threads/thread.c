@@ -471,6 +471,7 @@ init_thread (struct thread *t, const char *name, int priority)
   t->stack = (uint8_t *) t + PGSIZE;
   t->priority = priority;
   t->magic = THREAD_MAGIC;
+  t->thread_exit_code = 0;
 
   //t->is_kernel = is_kernel;
 
