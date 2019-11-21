@@ -28,6 +28,9 @@ static bool load (const char *cmdline, void (**eip) (void), void **esp);
 tid_t
 process_execute (const char *file_name)
 {
+  printf("process_execute file_name: ");
+  //printf(file_name);
+  //printf('\n');
   char *fn_copy;
   tid_t tid;
 
@@ -230,6 +233,15 @@ load (const char *file_name, void (**eip) (void), void **esp)
   //file_name contains program name + args seperated by strings
   //while strtok_r() != NULL
 
+  char *fn_copy = palloc_get_page (0);
+  if (fn_copy == NULL)
+    return TID_ERROR;
+  strlcpy (fn_copy, file_name, PGSIZE);
+
+  //STRIP OUT
+  char *p;
+  file_name = strtok_r(file_name, " ", &p);
+
   /* Open executable file. */
   file = filesys_open (file_name);
 
@@ -314,6 +326,33 @@ load (const char *file_name, void (**eip) (void), void **esp)
   /* Set up stack. */
   if (!setup_stack (esp))
     goto done;
+  /*MAKE STACK HERE*/
+  char *q;
+  int x;
+  int fileLen = strlen(fn_copy);
+
+  q = fn_copy+fileLen;
+while (q >= fn_copy)
+{
+  while (*q != ' ')
+    q--;
+  printf("%s\n", (q+1));
+  x = strlen(q+1);
+  *esp = (*esp)-(x+1);
+  strlcpy(*esp, q+1, PGSIZE);
+  if (*q == ' ')
+    {
+    *q = NULL;
+    q--;
+  }
+}
+// calculate padding, place in stack;
+// write null pointer
+// write pointers to all the strings
+
+hex_dump(*esp,*esp,64,1);
+
+
 
   /* Start address. */
   *eip = (void (*) (void)) ehdr.e_entry;
@@ -447,7 +486,7 @@ setup_stack (void **esp)
     {
       success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
       if (success) {
-        *esp = PHYS_BASE - 12;
+        *esp = PHYS_BASE;
       } else
         palloc_free_page (kpage);
     }
