@@ -332,6 +332,8 @@ load (const char *file_name, void (**eip) (void), void **esp)
   int fileLen = strlen(fn_copy);
 
   q = fn_copy+fileLen;
+  int spaceCount = 0;
+
 while (q >= fn_copy)
 {
   while (*q != ' ')
@@ -344,9 +346,22 @@ while (q >= fn_copy)
     {
     *q = NULL;
     q--;
+    spaceCount++;
+      printf("LQ=%#010x\n", q);
   }
 }
 // calculate padding, place in stack;
+int stackLength = fileLen - spaceCount - 1;
+printf("SL=%d\n", stackLength);
+
+while ((stackLength % 4) != 0)
+{
+    printf("SL_MOD4=%d\n", stackLength % 4);
+    *q = NULL;
+    q++;
+    printf("Q=%#010x\n", q);
+  stackLength ++;
+}
 // write null pointer
 // write pointers to all the strings
 
