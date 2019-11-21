@@ -347,22 +347,26 @@ while (q >= fn_copy)
     *q = NULL;
     q--;
     spaceCount++;
-      printf("LQ=%#010x\n", q);
+    //  printf("Q=%#010x\n", q);
   }
 }
 // calculate padding, place in stack;
-int stackLength = fileLen - spaceCount - 1;
-printf("SL=%d\n", stackLength);
-
-while ((stackLength % 4) != 0)
+//int stackLength = fileLen - spaceCount - 1;
+//int xx = (((unsigned int) *esp) % 4);
+//printf("%d\n", xx);
+*esp = (*esp - (((unsigned int) *esp) % 4));
+printf("StackPointer=%#010x\n", *esp);
+/*while ((stackLength % 4) != 0)
 {
     printf("SL_MOD4=%d\n", stackLength % 4);
     *q = NULL;
-    q++;
+    q--;
     printf("Q=%#010x\n", q);
   stackLength ++;
-}
+}*/
 // write null pointer
+*esp = *esp-4;
+*(int *)*esp = 0;
 // write pointers to all the strings
 
 hex_dump(*esp,*esp,64,1);
