@@ -90,8 +90,7 @@ start_process (void *file_name_)
 
    This function will be implemented in problem 2-2.  For now, it
    does nothing. */
-int
-process_wait (tid_t child_tid UNUSED)
+int process_wait (tid_t child_tid UNUSED)
 {
     // FIXME: @bgaster --- quick hack to make sure processes execute!
   for(;;) ;
@@ -328,28 +327,41 @@ load (const char *file_name, void (**eip) (void), void **esp)
     goto done;
   /*MAKE STACK HERE*/
   char *q;
-  int x;
+  int strLength;
   int fileLen = strlen(fn_copy);
 
+
+  int *strStart_p[32];
+  //int *stackStart_p = esp;
   q = fn_copy+fileLen;
   int spaceCount = 0;
-
+  int idx = 0;
+  //int c = 0;
 while (q >= fn_copy)
 {
   while (*q != ' ')
     q--;
   printf("%s\n", (q+1));
-  x = strlen(q+1);
-  *esp = (*esp)-(x+1);
+  strLength = strlen(q+1);
+  *esp = (*esp)-(strLength+1);
   strlcpy(*esp, q+1, PGSIZE);
   if (*q == ' ')
     {
+      if (q-1 != ' ' && q-1 != NULL)
+      {
+      strStart_p[idx] = *q-1;
+      printf("STACK_CHAR=[%c] IDX=[%d]\n", strStart_p[idx], idx); //DEBUG
+      idx++;
+    }
     *q = NULL;
     q--;
     spaceCount++;
     //  printf("Q=%#010x\n", q);
   }
 }
+
+printf("IDX=%d\n", idx);  //DEBUG
+
 // calculate padding, place in stack;
 //int stackLength = fileLen - spaceCount - 1;
 //int xx = (((unsigned int) *esp) % 4);
@@ -369,13 +381,27 @@ printf("StackPointer=%#010x\n", *esp);
 *(int *)*esp = 0;
 // write pointers to all the strings
 
+
+
+/*
+int c = 0;
+for (int i = strLength; i > 0; i--) {
+
+  if (*stackStart_p == NULL){
+    if (*stackStart_p-1 != NULL) {
+    strStart_p[i] = *(stackStart_p-1);
+    printf("STACK_CHAR=%c\n", *strStart_p[i]);
+    c++;
+    }
+  }
+    stackStart_p++;
+}
+*/
+
 hex_dump(*esp,*esp,64,1);
-
-
 
   /* Start address. */
   *eip = (void (*) (void)) ehdr.e_entry;
-
   success = true;
 
  done:
