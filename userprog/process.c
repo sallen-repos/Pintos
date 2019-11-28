@@ -201,7 +201,7 @@ struct Elf32_Phdr
 #define PF_W 2          /* Writable. */
 #define PF_R 4          /* Readable. */
 
-static bool setup_stack (void **esp);
+static bool setup_stack (void **esp, char* argv[], int argc);
 static bool validate_segment (const struct Elf32_Phdr *, struct file *);
 static bool load_segment (struct file *file, off_t ofs, uint8_t *upage,
                           uint32_t read_bytes, uint32_t zero_bytes,
@@ -212,7 +212,7 @@ static bool load_segment (struct file *file, off_t ofs, uint8_t *upage,
    and its initial stack pointer into *ESP.
    Returns true if successful, false otherwise. */
 bool
-load (const char *file_name, void (**eip) (void), void **esp)
+load (const char *cmdline, void (**eip) (void), void **esp)
 {
   struct thread *t = thread_current ();
   struct Elf32_Ehdr ehdr;
@@ -229,6 +229,17 @@ load (const char *file_name, void (**eip) (void), void **esp)
   //Use strtok_r() to split file_name
   //file_name contains program name + args seperated by strings
   //while strtok_r() != NULL
+
+  char *saveptr;
+  int argc = 0;
+  char *argv[100];
+  char *file_name = argv[argc++] = strtok_r((char *)cmdline, " ", &saveptr);
+
+  char *token;
+
+  while (token = strtok_r(NULL, " ", &saveptr)) {
+    argv[argc++] = token;
+  }
 
   /* Open executable file. */
   file = filesys_open (file_name);
@@ -312,7 +323,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
     }
 
   /* Set up stack. */
-  if (!setup_stack (esp))
+  if (!setup_stack (esp, &argv, argc))
     goto done;
 
   /* Start address. */
@@ -434,10 +445,17 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
   return true;
 }
 
+inline void
+push(void **esp, int *value, int length)
+{
+  *esp -= length;
+  (*(int *)*esp) = *value;
+}
+
 /* Create a minimal stack by mapping a zeroed page at the top of
    user virtual memory. */
 static bool
-setup_stack (void **esp)
+setup_stack (void **esp, char *argv[], int argc)
 {
   uint8_t *kpage;
   bool success = false;
@@ -447,7 +465,35 @@ setup_stack (void **esp)
     {
       success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
       if (success) {
-        *esp = PHYS_BASE - 12;
+        *esp = PHYS_BASE;
+        uint32_t *pointers[argc];
+
+        for (int idx = argc - 1; idx >= 0; idx--) {
+          int length = strlen(argv[idx]) + 1;
+          *esp -= length * sizeof(char);
+          pointers[idx] = (uint32_t *)*esp;
+          memcpy(*esp, argv[idx], length);
+        }
+
+        *esp -= sizeof(int);
+        (*(int *)(*esp)) = NULL;
+
+        void *arg0ptr;
+        for (int idx = argc - 1; idx >= 0; idx--) {
+          arg0ptr = *esp -= sizeof(uint32_t*);
+          (*(uint32_t**)(*esp)) = pointers[idx];
+        }
+
+        *esp -= sizeof(uint32_t*);
+        (*(uint32_t**)(*esp)) = arg0ptr;
+
+        *esp -= sizeof(int);
+        (*(int *)*esp) = argc;
+
+        *esp -= sizeof(void*);
+        (*(int *)*esp) = NULL;
+
+        hex_dump(PHYS_BASE, *esp, PHYS_BASE - (*esp), true);
       } else
         palloc_free_page (kpage);
     }
