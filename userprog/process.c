@@ -330,7 +330,6 @@ load (const char *file_name, void (**eip) (void), void **esp)
   int strLength;
   int fileLen = strlen(fn_copy);
 
-
   int *strStart_p[32];
   //int *stackStart_p = esp;
   q = fn_copy+fileLen;
@@ -347,10 +346,10 @@ while (q >= fn_copy)
   strlcpy(*esp, q+1, PGSIZE);
   if (*q == ' ')
     {
-      if (q-1 != ' ' && q-1 != NULL)
+      if (q+1 != ' ' && q+1 != NULL)
       {
-      strStart_p[idx] = *q-1;
-      printf("STACK_CHAR=[%c] IDX=[%d]\n", strStart_p[idx], idx); //DEBUG
+      strStart_p[idx] = q+1;
+      printf("STACK_CHAR=[%c] IDX=[%d]\n", *strStart_p[idx], idx); //DEBUG
       idx++;
     }
     *q = NULL;
@@ -381,8 +380,6 @@ printf("StackPointer=%#010x\n", *esp);
 *(int *)*esp = 0;
 // write pointers to all the strings
 
-
-
 /*
 int c = 0;
 for (int i = strLength; i > 0; i--) {
@@ -397,7 +394,6 @@ for (int i = strLength; i > 0; i--) {
     stackStart_p++;
 }
 */
-
 hex_dump(*esp,*esp,64,1);
 
   /* Start address. */
@@ -408,8 +404,7 @@ hex_dump(*esp,*esp,64,1);
   /* We arrive here whether the load is successful or not. */
   file_close (file);
   return success;
-}
-
+}
 /* load() helpers. */
 
 static bool install_page (void *upage, void *kpage, bool writable);
