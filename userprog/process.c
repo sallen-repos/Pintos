@@ -328,9 +328,10 @@ load (const char *file_name, void (**eip) (void), void **esp)
   /*MAKE STACK HERE*/
   char *q;
   int strLength;
+  int total_len = 0;
   int fileLen = strlen(fn_copy);
 
-  int *strStart_p[32];
+  char *strStart_p[32];
   //int *stackStart_p = esp;
   q = fn_copy+fileLen;
   int spaceCount = 0;
@@ -344,56 +345,37 @@ while (q >= fn_copy)
   strLength = strlen(q+1);
   *esp = (*esp)-(strLength+1);
   strlcpy(*esp, q+1, PGSIZE);
-  if (*q == ' ')
-    {
-      if (q+1 != ' ' && q+1 != NULL)
-      {
-      strStart_p[idx] = q+1;
-      printf("STACK_CHAR=[%c] IDX=[%d]\n", *strStart_p[idx], idx); //DEBUG
-      idx++;
-    }
-    *q = NULL;
-    q--;
-    spaceCount++;
-    //  printf("Q=%#010x\n", q);
+  strStart_p[idx++] = *esp;
+  total_len = total_len + strLength;  
   }
 }
 
-printf("IDX=%d\n", idx);  //DEBUG
 
 // calculate padding, place in stack;
 //int stackLength = fileLen - spaceCount - 1;
 //int xx = (((unsigned int) *esp) % 4);
 //printf("%d\n", xx);
 *esp = (*esp - (((unsigned int) *esp) % 4));
-printf("StackPointer=%#010x\n", *esp);
-/*while ((stackLength % 4) != 0)
-{
-    printf("SL_MOD4=%d\n", stackLength % 4);
-    *q = NULL;
-    q--;
-    printf("Q=%#010x\n", q);
-  stackLength ++;
-}*/
+//printf("StackPointer=%p\n", *esp);
+
+
+
+
+
+
 // write null pointer
 *esp = *esp-4;
 *(int *)*esp = 0;
-// write pointers to all the strings
-
 /*
-int c = 0;
-for (int i = strLength; i > 0; i--) {
+for (int i = idx; i > 0; i--)
+{
+  *q = *strStart_p[i];
+  q--;
 
-  if (*stackStart_p == NULL){
-    if (*stackStart_p-1 != NULL) {
-    strStart_p[i] = *(stackStart_p-1);
-    printf("STACK_CHAR=%c\n", *strStart_p[i]);
-    c++;
-    }
-  }
-    stackStart_p++;
 }
 */
+
+
 hex_dump(*esp,*esp,64,1);
 
   /* Start address. */
