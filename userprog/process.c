@@ -483,9 +483,9 @@ setup_stack (void **esp, char *argv[], int argc)
         //printf("padSize=%p\n", *esp); //debug
 
         for (padSize; padSize > 0; padSize--) {
-          *esp-=1;
+          //*esp-=1;
           //printf("pad=%d\n", padSize); //debug
-          (*(char *)*esp) = NULL;
+          //(*(char *)*esp) = NULL;
         }
         //</slightlyBroken>
 
