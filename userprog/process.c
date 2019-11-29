@@ -474,19 +474,16 @@ setup_stack (void **esp, char *argv[], int argc)
           pointers[idx] = (uint32_t *)*esp;
           memcpy(*esp, argv[idx], length);
         }
-        //<tiredDevJoke>
-        //<slightlyBroken>
-        // int padSize = (PHYS_BASE - *esp) % 4;
-        //
-        // printf("pre=%p\n", *esp);
-        // for (padSize; padSize >= 0; padSize--) {
-        //   *esp-=1;
-        //   printf("pad=%d\n", padSize);
-        //   (*(char *)*esp) = NULL;
-        // }
-        // printf("post=%p\n", *esp);
-        //</slightlyBroken>
-        //</tiredDevJoke>
+
+
+        int padSize = (PHYS_BASE - *esp) / 4;
+        //printf("padSize=%d\n", padSize); //debug
+        for (padSize; padSize > 0; padSize--) {
+          *esp-=1;
+          (*(char *)*esp) = NULL;
+        }
+
+
         *esp -= sizeof(int*);
         (*(int **)(*esp)) = NULL;
 
