@@ -475,14 +475,19 @@ setup_stack (void **esp, char *argv[], int argc)
           memcpy(*esp, argv[idx], length);
         }
 
+        //<slightlyBroken>
+        int padSize = 4 - ((PHYS_BASE - *esp) % 4);
 
-        int padSize = (PHYS_BASE - *esp) / 4;
         //printf("padSize=%d\n", padSize); //debug
+        //printf("padSize=%p\n", PHYS_BASE); //debug
+        //printf("padSize=%p\n", *esp); //debug
+
         for (padSize; padSize > 0; padSize--) {
           *esp-=1;
+          //printf("pad=%d\n", padSize); //debug
           (*(char *)*esp) = NULL;
         }
-
+        //</slightlyBroken>
 
         *esp -= sizeof(int*);
         (*(int **)(*esp)) = NULL;
