@@ -474,9 +474,21 @@ setup_stack (void **esp, char *argv[], int argc)
           pointers[idx] = (uint32_t *)*esp;
           memcpy(*esp, argv[idx], length);
         }
-
-        *esp -= sizeof(int);
-        (*(int *)(*esp)) = NULL;
+        //<tiredDevJoke>
+        //<slightlyBroken>
+        // int padSize = (PHYS_BASE - *esp) % 4;
+        //
+        // printf("pre=%p\n", *esp);
+        // for (padSize; padSize >= 0; padSize--) {
+        //   *esp-=1;
+        //   printf("pad=%d\n", padSize);
+        //   (*(char *)*esp) = NULL;
+        // }
+        // printf("post=%p\n", *esp);
+        //</slightlyBroken>
+        //</tiredDevJoke>
+        *esp -= sizeof(int*);
+        (*(int **)(*esp)) = NULL;
 
         void *arg0ptr;
         for (int idx = argc - 1; idx >= 0; idx--) {
@@ -491,9 +503,9 @@ setup_stack (void **esp, char *argv[], int argc)
         (*(int *)*esp) = argc;
 
         *esp -= sizeof(void*);
-        (*(int *)*esp) = NULL;
+        (*(int **)*esp) = NULL;
 
-        hex_dump(PHYS_BASE, *esp, PHYS_BASE - (*esp), true);
+        hex_dump(*esp, *esp, PHYS_BASE - (*esp), true);
       } else
         palloc_free_page (kpage);
     }
