@@ -1,10 +1,10 @@
 #include <stdio.h>
-#include <syscall.h>
+#include "../../lib/user/syscall.h"
 
 int
 main (void)
 {
-    printf("Hello, World\n");
-    
+    //printf("Hello, World\n");
+    halt();
     return EXIT_SUCCESS;
 }

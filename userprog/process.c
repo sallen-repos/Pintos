@@ -246,7 +246,7 @@ load (const char *cmdline, void (**eip) (void), void **esp)
 
   if (file == NULL)
     {
-	printf ("load: %s: open failed\n", file_name);
+	printf ("load: %s: open failed, reason: file = NULL\n", file_name);
       goto done;
     }
 
