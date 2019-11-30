@@ -19,11 +19,11 @@ static void syscall_handler (struct intr_frame *f UNUSED)
   thread_exit ();
 }
 
-static void halt() {
+void halt() {
   shutdown_power_off();
 }
 
-static void exit (int status) {
+void exit (int status) {
   /* if (parent waits)
    status = parent.thread_status
    */
