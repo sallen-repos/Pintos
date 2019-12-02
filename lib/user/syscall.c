@@ -68,8 +68,6 @@ halt (void)
 {
   syscall0 (SYS_HALT);
   printf("%d\n", SYS_HALT);
-  //shutdown_power_off();
-  //syscall_handler();
 }
 
 void
