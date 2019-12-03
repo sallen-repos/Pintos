@@ -29,12 +29,12 @@ void syscall_handler (struct intr_frame *f)// UNUSED)
       break;
 
     case SYS_WRITE :
-
+  thread_exit();
       break;
 
     default:
-    prinf("!Error Syscall default!"); //debug
-      thead_exit();
+    printf("!Error Syscall default!"); //debug
+      thread_exit();
   }
 
   //thread_exit ();

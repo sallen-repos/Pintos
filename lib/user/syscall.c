@@ -75,7 +75,7 @@ exit (int status)
 {
   syscall1 (SYS_EXIT, status);
   printf("%d\n", status);
-  thread_exit ();
+  //thread_exit ();
 }
 
 pid_t
