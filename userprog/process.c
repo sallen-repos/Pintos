@@ -469,25 +469,26 @@ setup_stack (void **esp, char *argv[], int argc)
         uint32_t *pointers[argc]; //Creates array of pointers for number of args
 
         for (int idx = argc - 1; idx >= 0; idx--) { //Loops for number of args
-          int length = strlen(argv[idx]) + 1; //Gets length of arg + 1
-          *esp -= length * sizeof(char); //Moves the stack pointer down by the size of char
+          int length = strlen(argv[idx]) + 1; //Gets length of arg + 1 to accomadate a NULL termination
+          //Moves the stack pointer down by the size required for the number of chars to store the argument as a NULL terminated string
+          *esp -= length * sizeof(char);
           pointers[idx] = (uint32_t *)*esp; //Saves the pointer to the arg in the array
           memcpy(*esp, argv[idx], length); //Copys the arg to the stack
         }
 
         int padSize = 4 - ((PHYS_BASE - *esp) % 4); //Calculates the padding to match 4 bytes
 
-        for (padSize; padSize > 0; padSize--) { //loops for the number of NULLs needed
+        for (padSize; padSize > 0; padSize--) { //loops for the number of NULLs needed to pad stack to 4 bytes
           *esp-=1; //Moves the pointer back one
           (*(char *)*esp) = NULL; //Writes a NULL
         }
 
         *esp -= sizeof(int*); //Moves the pointer back one
-        (*(int **)(*esp)) = NULL; //Writes a NULL
+        (*(int **)(*esp)) = NULL; //Writes a NULL to signify the end of the argument array
 
         void *arg0ptr;
         for (int idx = argc - 1; idx >= 0; idx--) { //Loops for number of args
-          arg0ptr = *esp -= sizeof(uint32_t*); //Sets arg0ptr as a pointer to the first argument
+          arg0ptr = *esp -= sizeof(uint32_t*); //Sets arg0ptr as a pointer to the most recent argument
           (*(uint32_t**)(*esp)) = pointers[idx]; //Sets the stack pointer to the next arg
         }
 
