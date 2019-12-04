@@ -32,6 +32,7 @@ void syscall_handler (struct intr_frame *f)// UNUSED)
   //int sysCode = 6; //DEBUG FORCED ON 3!! DEBUG
 
   switch(sysCode) {
+
     case SYS_HALT :
       printf ("SYS_HALT (%d)\n", sysCode); //DEBUG
       shutdown_power_off();
@@ -57,6 +58,14 @@ void syscall_handler (struct intr_frame *f)// UNUSED)
       f->eax = open((char**)(f->esp + 4));
 
       //printf ("FileName (%s)\n", fileName);
+      break;
+
+    case SYS_REMOVE : ;
+      const char *fileName =  *(char**)(f->esp + 4);
+        printf ("SYS_REMOVE (%s)\n", fileName);
+      bool isRemoved = filesys_remove(fileName);
+      f->eax = isRemoved;
+
       break;
 
     case SYS_WRITE : ;
