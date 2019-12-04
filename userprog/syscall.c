@@ -13,7 +13,6 @@
 static struct lock filesysLock;
 
 
-
 static void syscall_handler (struct intr_frame *);
 void sysExit(int);
 int open(void*);
@@ -23,14 +22,12 @@ syscall_init (void)
 {
   intr_register_int (0x30, 3, INTR_ON, syscall_handler, "syscall");
 }
-
+//syscall handler takes interrupt frame as a pointer on the stack
 void syscall_handler (struct intr_frame *f)// UNUSED)
 {
-  //printf ("system call!\n");
   int sysCode = *(int*)f->esp;
 
-  //int sysCode = 6; //DEBUG FORCED ON 3!! DEBUG
-
+  char *fileName =  *(char**)(f->esp + 4);
   switch(sysCode) {
 
     case SYS_HALT :
@@ -48,20 +45,42 @@ void syscall_handler (struct intr_frame *f)// UNUSED)
 
     case SYS_EXEC :
       printf ("SYS_EXEC (%d)\n", sysCode); //DEBUG
-      char *execFileName =  *(char**)(f->esp + 4);
-      printf("EXEC_NAME=%s\n", execFileName );
+
+      printf("EXEC_NAME=%s\n", fileName );
       break;
 
     case SYS_OPEN: ;
     printf ("SYS_OPEN (%d)\n", sysCode);
       //char *fileName = (char**)(f->esp + 4);
-      f->eax = open((char**)(f->esp + 4));
+      // open((char**)(f->esp + 4));
+      struct file *currentFile = filesys_open(fileName);
+      struct thread *currentThread = thread_current();
+      int fileDescriptor = 0;
 
-      //printf ("FileName (%s)\n", fileName);
+      if (currentFile == NULL) {
+        fileDescriptor = -1;
+      }
+      f->eax = fileDescriptor;
+      break;
+
+    case SYS_WRITE : ;
+      //inode_write_at(file->inode, buffer, size, file->pos)
+      //file->pos += bytes_written;
+      //f-eax = bytes_written;
+
+      //  printf ("SYS_WRITE (%d)\n", sysCode);
+      //  int fileDescriptor =   *((int*)f->esp + 1);
+      //  void *buffer = (void*)(*((int*)f->esp + 2));
+        //unsigned size = *((unsigned *)f->esp + 3);
+
+        //f->eax = write(fileDescriptor, buffer, size)
+      break;
+
+    case SYS_SEEK : ;
       break;
 
     case SYS_REMOVE : ;
-      const char *fileName =  *(char**)(f->esp + 4);
+      //const char *fileName =  *(char**)(f->esp + 4);
         printf ("SYS_REMOVE (%s)\n", fileName);
       bool isRemoved = filesys_remove(fileName);
       f->eax = isRemoved;
@@ -79,14 +98,7 @@ void syscall_handler (struct intr_frame *f)// UNUSED)
       f->eax = iscreated;
       break;
 
-    case SYS_WRITE : ;
-      printf ("SYS_WRITE (%d)\n", sysCode);
-      int fileDescriptor =   *((int*)f->esp + 1);
-      void *buffer = (void*)(*((int*)f->esp + 2));
-      unsigned size = *((unsigned *)f->esp + 3);
 
-      //f->eax = write(fileDescriptor, buffer, size)
-      break;
 
     default:
     printf ("Syscode=%d\n", sysCode); //DEBUG
@@ -94,20 +106,4 @@ void syscall_handler (struct intr_frame *f)// UNUSED)
     break;
   }
   thread_exit();
-}
-
-int open (void *esp)
-{
-  const char *fileName =  *(char**)(esp);
-  esp += sizeof (char *);
-
-  printf ("FileName= (%s)\n", fileName);
-  struct file* file = filesys_open(fileName);
-  struct thread *cur = thread_current ();
-  int fileDescriptor;
-
-  if (file == NULL){
-      fileDescriptor = -1;
-      return fileDescriptor;
-  }
 }
