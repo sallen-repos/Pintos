@@ -6,6 +6,6 @@ main (void)
 {
     //printf("Hello, World\n");
     //halt();
-    remove("insult");
+    create("myfile.txt",32);
     return EXIT_SUCCESS;
 }

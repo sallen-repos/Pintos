@@ -10,7 +10,7 @@
 #include "../filesys/inode.h"
 #include "../filesys/directory.h"
 
-static struct lock fileSysLock;
+static struct lock filesysLock;
 
 
 
@@ -66,6 +66,17 @@ void syscall_handler (struct intr_frame *f)// UNUSED)
       bool isRemoved = filesys_remove(fileName);
       f->eax = isRemoved;
 
+      break;
+
+    case SYS_CREATE : ;
+      const char *createFileName =  *(char**)(f->esp + 4);
+      bool iscreated;
+
+      //lock_acquire(&filesysLock);
+      iscreated = filesys_create(createFileName,f->esp + 8);
+      //lock_release(&filesysLock);
+
+      f->eax = iscreated;
       break;
 
     case SYS_WRITE : ;
