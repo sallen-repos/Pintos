@@ -6,6 +6,6 @@ main (void)
 {
     //printf("Hello, World\n");
     //halt();
-    exit();
+    open("echo foo bar");
     return EXIT_SUCCESS;
 }
