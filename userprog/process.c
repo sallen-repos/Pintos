@@ -465,49 +465,42 @@ setup_stack (void **esp, char *argv[], int argc)
     {
       success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
       if (success) {
-        *esp = PHYS_BASE;
-        uint32_t *pointers[argc];
+        *esp = PHYS_BASE;  //Sets the stack pointer to the base of memory
+        uint32_t *pointers[argc]; //Creates array of pointers for number of args
 
-        for (int idx = argc - 1; idx >= 0; idx--) {
-          int length = strlen(argv[idx]) + 1;
-          *esp -= length * sizeof(char);
-          pointers[idx] = (uint32_t *)*esp;
-          memcpy(*esp, argv[idx], length);
+        for (int idx = argc - 1; idx >= 0; idx--) { //Loops for number of args
+          int length = strlen(argv[idx]) + 1; //Gets length of arg + 1
+          *esp -= length * sizeof(char); //Moves the stack pointer down by the size of char
+          pointers[idx] = (uint32_t *)*esp; //Saves the pointer to the arg in the array
+          memcpy(*esp, argv[idx], length); //Copys the arg to the stack
         }
 
-        //<slightlyBroken>
-        int padSize = 4 - ((PHYS_BASE - *esp) % 4);
+        int padSize = 4 - ((PHYS_BASE - *esp) % 4); //Calculates the padding to match 4 bytes
 
-        //printf("padSize=%d\n", padSize); //debug
-        //printf("padSize=%p\n", PHYS_BASE); //debug
-        //printf("padSize=%p\n", *esp); //debug
-
-        for (padSize; padSize > 0; padSize--) {
-          *esp-=1;
-          //printf("pad=%d\n", padSize); //debug
-          (*(char *)*esp) = NULL;
+        for (padSize; padSize > 0; padSize--) { //loops for the number of NULLs needed
+          *esp-=1; //Moves the pointer back one
+          (*(char *)*esp) = NULL; //Writes a NULL
         }
-        //</slightlyBroken>
 
-        *esp -= sizeof(int*);
-        (*(int **)(*esp)) = NULL;
+        *esp -= sizeof(int*); //Moves the pointer back one
+        (*(int **)(*esp)) = NULL; //Writes a NULL
 
         void *arg0ptr;
-        for (int idx = argc - 1; idx >= 0; idx--) {
-          arg0ptr = *esp -= sizeof(uint32_t*);
-          (*(uint32_t**)(*esp)) = pointers[idx];
+        for (int idx = argc - 1; idx >= 0; idx--) { //Loops for number of args
+          arg0ptr = *esp -= sizeof(uint32_t*); //Sets arg0ptr as a pointer to the first argument
+          (*(uint32_t**)(*esp)) = pointers[idx]; //Sets the stack pointer to the next arg
         }
 
-        *esp -= sizeof(uint32_t*);
-        (*(uint32_t**)(*esp)) = arg0ptr;
+        *esp -= sizeof(uint32_t*); //Moves the pointer back one
+        (*(uint32_t**)(*esp)) = arg0ptr; //writes the arg0 pointer to the stack
 
-        *esp -= sizeof(int);
-        (*(int *)*esp) = argc;
+        *esp -= sizeof(int); //Moves the pointer back one
+        (*(int *)*esp) = argc; //Writes the arg count to the stack
 
-        *esp -= sizeof(void*);
-        (*(int **)*esp) = NULL;
+        *esp -= sizeof(void*); //Moves the pointer back one
+        (*(int **)*esp) = NULL; //Writes a pointer to the last arg to the stack
 
-        hex_dump(*esp, *esp, PHYS_BASE - (*esp), true);
+        hex_dump(*esp, *esp, PHYS_BASE - (*esp), true); //debug
       } else
         palloc_free_page (kpage);
     }
